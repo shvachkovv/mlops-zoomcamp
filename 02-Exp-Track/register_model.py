@@ -2,14 +2,15 @@ import os
 import pickle
 import click
 import mlflow
+import ast
 
 from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 
-HPO_EXPERIMENT_NAME = "random-forest-hyperopt"
-EXPERIMENT_NAME = "random-forest-best-models"
+HPO_EXPERIMENT_NAME = "random-forest-hyperopts"
+EXPERIMENT_NAME = "random-forest-best-model"
 RF_PARAMS = ['max_depth', 'n_estimators', 'min_samples_split', 'min_samples_leaf', 'random_state']
 
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
@@ -29,8 +30,10 @@ def train_and_log_model(data_path, params):
 
     with mlflow.start_run():
         new_params = {}
+        print(params)
         for param in RF_PARAMS:
-            new_params[param] = int(params[param])
+        #    print(ast.literal_eval(params['train-parameters'])[param])
+           new_params[param] = int(ast.literal_eval(params['train-parameters'])[param])
 
         rf = RandomForestRegressor(**new_params)
         rf.fit(X_train, y_train)
@@ -45,7 +48,7 @@ def train_and_log_model(data_path, params):
 @click.command()
 @click.option(
     "--data_path",
-    default="./output",
+    default="./Output",
     help="Location where the processed NYC taxi trip data was saved"
 )
 @click.option(
@@ -71,9 +74,19 @@ def run_register_model(data_path: str, top_n: int):
 
     # Select the model with the lowest test RMSE
     experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
-    # best_run = client.search_runs( ...  )[0]
+    runs = client.search_runs(
+        experiment_ids=[experiment.experiment_id],
+        order_by=["metrics.rmse ASC"],
+        max_results=1,
+    )
+    
+    best_run = runs[0]
+    print("Best run ID:", best_run.info.run_id)
 
     # Register the best model
+    model_uri = f"runs:/{best_run.info.run_id}/model"
+    registered_model = mlflow.register_model(model_uri, "BestForestModel")
+    print("Registered model:", registered_model.name, "version:", registered_model.version)
     # mlflow.register_model( ... )
 
 

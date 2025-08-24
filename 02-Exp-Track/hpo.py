@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
-mlflow.set_experiment("random-forest-hyperopt")
+mlflow.set_experiment("random-forest-hyperopts")
 
 
 def load_pickle(filename: str):
@@ -20,7 +20,7 @@ def load_pickle(filename: str):
 @click.command()
 @click.option(
     "--data_path",
-    default="./output",
+    default="./Output",
     help="Location where the processed NYC taxi trip data was saved"
 )
 @click.option(
@@ -35,10 +35,15 @@ def run_optimization(data_path: str, num_trials: int):
 
     def objective(params):
 
-        rf = RandomForestRegressor(**params)
-        rf.fit(X_train, y_train)
-        y_pred = rf.predict(X_val)
-        rmse = root_mean_squared_error(y_val, y_pred)
+        with mlflow.start_run():
+
+            rf = RandomForestRegressor(**params)
+            rf.fit(X_train, y_train)
+            y_pred = rf.predict(X_val)
+            rmse = root_mean_squared_error(y_val, y_pred)
+
+            mlflow.log_metric("rmse", rmse)
+            mlflow.log_param("train-parameters", params)
 
         return {'loss': rmse, 'status': STATUS_OK}
 
