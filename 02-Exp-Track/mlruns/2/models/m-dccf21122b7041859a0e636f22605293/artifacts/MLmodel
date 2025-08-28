@@ -1,0 +1,22 @@
+artifact_path: /Users/volodymyr_shvachko/Project/MLOps/mlops-zoomcamp-lab/02-Exp-Track/mlruns/2/models/m-dccf21122b7041859a0e636f22605293/artifacts
+flavors:
+  python_function:
+    data: model.xgb
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.11.7
+  xgboost:
+    code: null
+    data: model.xgb
+    model_class: xgboost.core.Booster
+    model_format: xgb
+    xgb_version: 3.0.4
+mlflow_version: 3.3.1
+model_id: m-dccf21122b7041859a0e636f22605293
+model_size_bytes: 969405
+model_uuid: m-dccf21122b7041859a0e636f22605293
+prompts: null
+run_id: 50d1eef39d7a42f0bfc12d6bff1db97b
+utc_time_created: '2025-08-28 19:50:22.233968'
